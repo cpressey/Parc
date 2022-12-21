@@ -1,5 +1,7 @@
 module Unification where
 
+import Prelude hiding (lookup)
+
 --
 -- Terms...
 --
@@ -16,9 +18,11 @@ data Unifier = Env [(String, Term)]
              | Failed
     deriving (Show, Ord, Eq)
 
-fetch name Failed = Nothing
-fetch name (Env []) = Nothing
-fetch name (Env ((cand, t):rest)) = if name == cand then Just t else fetch name (Env rest)
+empty = Env []
+
+lookup name Failed = Nothing
+lookup name (Env []) = Nothing
+lookup name (Env ((cand, t):rest)) = if name == cand then Just t else lookup name (Env rest)
 
 update name value (Env rest) = Env ((name, value):rest)
 update name value Failed = Failed
@@ -38,8 +42,20 @@ unify s@(Term sn ss) t@(Term tn ts) env = if sn == tn then unifyAll ss ts env el
 
 matchVar var@(Var name) pattern env =
     if var == pattern then env
-        else case fetch name env of
+        else case lookup name env of
             Just boundTo ->
                 unify boundTo pattern env
             Nothing ->
                 update name pattern env
+
+--
+-- Demo
+--
+
+test1 =
+    let
+        t1 = Term "x" [Var "y", Term "z" []]
+        t2 = Term "x" [Term "n" [Var "b"], Var "x"]
+    in
+        unify t1 t2 empty
+        -- == Env [("x",Term "z" []),("y",Term "n" [Var "b"])]
