@@ -1,4 +1,4 @@
-module Unification where
+module Unification (Term, Unifier, lookup, update, empty, unify, matchVar) where
 
 import Prelude hiding (lookup)
 
@@ -46,7 +46,15 @@ matchVar var@(Var name) pattern env =
             Just boundTo ->
                 unify boundTo pattern env
             Nothing ->
-                update name pattern env
+                case pattern of
+                    Var pname ->
+                        case lookup pname env of
+                            Just boundTo ->
+                                unify var boundTo env
+                            Nothing ->
+                                update name pattern env
+                    _ ->
+                        update name pattern env
 
 --
 -- Demo
@@ -59,3 +67,11 @@ test1 =
     in
         unify t1 t2 empty
         -- == Env [("x",Term "z" []),("y",Term "n" [Var "b"])]
+
+-- From Peter Norvig's "Correcting a Widespread Error in Unification Algorithms"
+test2 =
+    let
+        t1 = Term "p" [Var "X", Var "Y", Term "a" []]
+        t2 = Term "p" [Var "Y", Var "X", Var "X"]
+    in
+        unify t1 t2 empty

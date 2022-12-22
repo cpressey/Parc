@@ -10,6 +10,7 @@ import Unification
 
 -- TODO: this would be more readable as a record
 data Unif = Unif Unifier String
+    deriving (Show, Ord, Eq)
 
 freshVar (Unif u n) = n ++ "a"  -- FIXME: get fresh var from looking at u
 
@@ -35,6 +36,7 @@ many1 c = seq c (many c)
 
 c = char 'c'
 d = char 'd'
+z = (seq c (seq c d))
 
 -- Demo
-test1 = seq c (seq c d)
+test1 = z $ Parsing "ccd" (Unif empty "a")
